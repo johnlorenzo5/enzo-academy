@@ -1,0 +1,20 @@
+{
+  "name": "@enzo/web",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "node --test test/*.test.js"
+  },
+  "dependencies": {
+    "@enzo/catalog": "*",
+    "@enzo/domain": "*",
+    "firebase": "^12.19.0"
+  },
+  "devDependencies": {
+    "vite": "^7.3.0"
+  }
+}

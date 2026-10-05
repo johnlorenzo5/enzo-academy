@@ -1,0 +1,8 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // All data is accessed through the authenticated API. Answer keys and grades
+    // must never be readable/writable directly by a browser client.
+    match /{document=**} { allow read, write: if false; }
+  }
+}

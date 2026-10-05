@@ -1,0 +1,22 @@
+{
+  "name": "@enzo/api",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch --import tsx src/server.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/server.js",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "tsx --test test/*.test.ts"
+  },
+  "dependencies": {
+    "@enzo/catalog": "*",
+    "@enzo/domain": "*",
+    "fastify": "^5.6.0",
+    "firebase-admin": "^14.5.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.20.0"
+  }
+}
