@@ -1,4 +1,4 @@
-﻿# enzoAcademy monorepo
+﻿# EnzoAcademy
 
 A learning platform where administrators create courses and learners enroll, complete activities, take quizzes, and view their achievements. This repository contains the web interface, API, and shared course logic.
 
