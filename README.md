@@ -1,17 +1,54 @@
 ﻿# enzoAcademy monorepo
 
-A course and quiz platform using npm workspaces, Vite, a TypeScript/Fastify API, Firebase Authentication, and Firestore.
+A learning platform where administrators create courses and learners enroll, complete activities, take quizzes, and view their achievements. This repository contains the web interface, API, and shared course logic.
+
+## Features
+
+- Email/password and Google sign-in, with separate administrator and learner access.
+- Course creation, module editing, enrollment dates, and course archiving.
+- Guided lessons with YouTube videos, readings, practice activities, quizzes, and saved notes.
+- Progress tracking, server-side quiz grading, and enrollment deadlines.
+- Module certificates with PDF downloads, public verification, and administrator management.
+- Learner profiles and achievement badges.
+
+## Technology
+
+The interface uses JavaScript, HTML, CSS, and Vite. The API uses TypeScript and Fastify. Firebase Authentication handles sign-in, and Firestore stores shared application data. npm workspaces connect the apps and shared packages in this repository.
+
+## Finals programming checklist
+
+These examples are used by the application. Comments beside the relevant code identify each concept.
+
+| Requirement | Example | Source |
+| --- | --- | --- |
+| Arrays | `courses`, `enrollments`, and `learners` store lists used by the interface. | [cloud.js](apps/web/src/cloud.js) |
+| Objects | `firebaseConfig` groups Firebase settings into named properties. | [firebase.js](apps/web/src/firebase.js) |
+| Functions | `youtubeId(value)` accepts a video ID or URL and returns a valid ID or `null`. | [activities.js](packages/domain/src/activities.js) |
+| Factory | `createAccountMenu(...)` creates a menu with its own state and returns an object with methods to control it. | [account-menu.js](apps/web/src/account-menu.js) |
+| JavaScript basics: variables | `const` declares fixed bindings, while `let` allows application state to be reassigned. | [cloud.js](apps/web/src/cloud.js) |
+| Singleton pattern | The Firebase module initializes and exports shared `auth` and `api` instances that importers reuse within the same module environment. | [firebase.js](apps/web/src/firebase.js) |
+
+The Factory example is a **factory function**. The Singleton example uses **shared JavaScript module exports**. These implementations do not include a class-based Factory Method or a Singleton class with `getInstance()`; compare these forms with the course rubric when preparing the demonstration.
 
 ## Start locally
 
-Use Node.js 22.12+ and npm 10+:
+Use Node.js 22.12+ and npm 10+. Run the following commands from this repository's root folder (the `school` folder on the original development computer):
 
 ```sh
 npm install
+```
+
+Complete the [Firebase server setup](docs/firebase-setup.md) for shared courses and accounts. This includes configuring Firebase Authentication and Firestore, copying `apps/api/.env.example` to `apps/api/.env`, and providing server credentials. The web configuration already identifies Firebase project `ap-6-95cb9`; using another project also requires updating `apps/web/src/firebase.js` and the server settings.
+
+Start both the web interface and API:
+
+```sh
 npm run dev
 ```
 
-Open http://127.0.0.1:5173. The API runs on port 3001. The default application uses Firebase project `ap-6-95cb9`. Complete [Firebase server setup](docs/firebase-setup.md) before using shared courses and accounts. Firebase Web configuration is already installed; Analytics is not enabled.
+Open http://127.0.0.1:5173. The API runs on port 3001. Keep the terminal running while using the app; press **Ctrl+C** to stop it. On later runs, use `npm run dev` again. Analytics is not enabled.
+
+For a classroom demonstration, sign in as an administrator to create and activate a course, then use a separate learner account to enroll and complete its activities. Firebase setup is required for this shared-data workflow; automated tests do not verify live Firebase connectivity.
 
 ## Structure
 
