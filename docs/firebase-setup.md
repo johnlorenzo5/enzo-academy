@@ -8,7 +8,7 @@ The web application uses Firebase Authentication. The Fastify API verifies ID to
 
 ## One-time console setup
 
-1. Enable Authentication → Email/Password.
+1. Enable Authentication → Email/Password and Google. Select a project support email for Google sign-in. Under Authentication → Settings → Authorized domains, include your app hostname. Both `localhost` and `127.0.0.1` are authorized for this project's local development.
 2. Create a Standard Firestore database with ID `(default)` in production mode.
 3. Keep the Firestore rules denying browser reads and writes. The intended rules are in `firestore.rules`; the Admin SDK bypasses them and the API performs authorization. These rules have not been deployed automatically.
 4. Use the Firebase account with the administrator UID above when logging in. Demo browser accounts are separate.
@@ -41,3 +41,11 @@ Open the app and sign in with your Firebase admin account. Create a course, auth
 If the API reports missing credentials, check the absolute path and restart it. If Firestore is unavailable, confirm the `(default)` database exists and the credential has access. Enable Email/Password if Firebase returns `auth/operation-not-allowed`. Do not loosen Firestore rules to work around API credential errors.
 
 References: [Admin SDK setup](https://firebase.google.com/docs/admin/setup), [ID token verification](https://firebase.google.com/docs/auth/admin/verify-id-tokens), [Firestore security](https://firebase.google.com/docs/firestore/security/overview).
+
+## Google sign-in
+
+Login and registration both offer **Continue with Google** using Firebase `GoogleAuthProvider` and a popup. The same authenticated API session and UID-based administrator checks apply. A pending guest enrollment resumes only after successful authentication and opens the course module after the enrollment API confirms success. Closing the popup keeps the email form available.
+
+Allow popups for the app if the browser blocks the Google account chooser. The browser-local `?demo=1` mode keeps its separate demo accounts; Google sign-in is provided by the default Firebase app.
+
+Reference: [Google sign-in for Firebase web apps](https://firebase.google.com/docs/auth/web/google-signin).

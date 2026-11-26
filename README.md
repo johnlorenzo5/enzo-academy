@@ -37,6 +37,8 @@ CI runs `npm ci` and `npm run check`. Tests use isolated in-memory data and virt
 
 ## Course administration
 
+The Firebase app now includes a dedicated guided learning workspace with embedded YouTube videos, ordered activities, transcripts, notes, and resource links. See [Guided learning](docs/guided-learning.md) for authoring steps, completion rules, and compatibility details.
+
 Sign in using the Firebase account whose UID is configured as `FIREBASE_ADMIN_UID`. The old demo admin password does not authorize Firebase access. The database starts empty; it is not automatically populated from browser-local data.
 
 Open **Courses → Add course**, then **Modules & quizzes**. New courses start inactive so you can author content before opening enrollment. Modules support lesson text, practice instructions, and up to 50 questions:
@@ -58,3 +60,7 @@ Open http://127.0.0.1:5173/?demo=1 for the original browser-local prototype and 
 Web output: `apps/web/dist`. API output: `apps/api/dist`. Keep workspace packages and installed dependencies with the API. Supply server credentials through the hosting environment or Application Default Credentials. `apps/api/.env` is loaded when starting via the workspace npm command and is ignored by Git.
 
 Use a production reverse proxy from `/api` to Fastify. The Vite development proxy is not part of the static build or preview server. Set `HOST` and `PORT` for your hosting environment; add your deployed domain in Firebase Authentication settings. Do not place a service-account key in web environment variables, static assets, or source control.
+
+## Certificates and achievements
+
+Module certificates, profile badges, public verification and Admin management are available in the Firebase app. See [Certificate setup and migration](docs/certificates.md) for email environment variables, historical completion backfill, deployment assets and testing.

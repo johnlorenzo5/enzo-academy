@@ -1,3 +1,5 @@
+import { validateActivity } from './activities.js';
+
 export function moduleCount(course, enrollment) {
   return enrollment?.curriculum?.length ?? course.modules?.length ?? course.topics?.length ?? 4;
 }
@@ -5,10 +7,24 @@ export function moduleCount(course, enrollment) {
 export function validateModules(modules) {
   if (!Array.isArray(modules) || !modules.length || modules.length > 50) throw new Error('Add between 1 and 50 modules.');
   const ids = new Set();
+  const activityIds = new Set(modules.map(m => m?.id));
+  let activityCount = 0;
   for (const module of modules) {
     if (!module.id || ids.has(module.id)) throw new Error('Each module needs a unique ID.');
     ids.add(module.id);
     if (!module.title?.trim() || module.title.length > 120) throw new Error('Module titles must contain 1–120 characters.');
+    if (module.activities !== undefined) {
+      if (!Array.isArray(module.activities) || !module.activities.length || module.activities.length > 50) throw new Error('Add between 1 and 50 activities per module.');
+      activityCount += module.activities.length;
+      for (const activity of module.activities) {
+        validateActivity(activity);
+        if (!activity.id || activityIds.has(activity.id)) throw new Error('Activities need unique IDs across the course.');
+        activityIds.add(activity.id);
+        validateModules([{ ...activity, content: activity.content || 'Video lesson' }]);
+      }
+      continue;
+    }
+    activityCount++;
     if (!module.content?.trim() || module.content.length > 20000) throw new Error(`${module.title}: add lesson content (up to 20,000 characters).`);
     if (!Number.isInteger(module.passPercent) || module.passPercent < 1 || module.passPercent > 100) throw new Error('Passing score must be a whole number from 1 to 100.');
     if (!Array.isArray(module.questions) || module.questions.length > 50) throw new Error('Use at most 50 questions per module.');
@@ -28,6 +44,7 @@ export function validateModules(modules) {
       } else throw new Error('Choose a supported question type.');
     }
   }
+  if (activityCount > 100) throw new Error('Use at most 100 activities per course.');
   return modules;
 }
 

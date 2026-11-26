@@ -8,3 +8,6 @@ coverage/
 
 *service-account*.json
 *firebase-adminsdk*.json
+
+# Local certificate rendering QA
+tmp/pdfs/

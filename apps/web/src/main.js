@@ -1,3 +1,6 @@
+import { mountProfilePage } from './profile-page.js';
+import './profile.css';
+import { createAccountMenu } from './account-menu.js';
 import { moduleCount } from '@enzo/domain';
 import { modulesFor, mountCourseBuilder } from './course-builder.js';
 import { lessonMarkup, readQuiz } from './lesson-player.js';
@@ -114,6 +117,10 @@ try {
   if (Array.isArray(stored)) accounts = stored.filter(a => a && typeof a.id === 'string' && typeof a.email === 'string' && typeof a.hash === 'string' && typeof a.salt === 'string');
   const sessionId = sessionStorage.getItem(SESSION_KEY);
   currentAccount = sessionId === 'enzoAcademy-admin' ? {id:'enzoAcademy-admin', name:'Admin', email:ADMIN_EMAIL, role:'admin'} : accounts.find(a => a.id === sessionId) || null;
+  if(currentAccount?.role==='admin'){
+    const profile=JSON.parse(localStorage.getItem('enzoAcademy-admin-profile')||'null');
+    if(profile){currentAccount.profile=profile;currentAccount.name=`${profile.firstName} ${profile.lastName}`;}
+  }
   const savedCourses = JSON.parse(localStorage.getItem(ADMIN_COURSES_KEY));
   if (Array.isArray(savedCourses)) courses = savedCourses;
 } catch {}
@@ -141,10 +148,24 @@ save = function() {
   try { localStorage.setItem(KEY + ':' + currentAccount.id, JSON.stringify(state)); return true; }
   catch { notify('Progress could not be saved. Browser storage may be full or disabled.'); return false; }
 };
+let disposeProfile;
 const renderLearningPlatform = render;
 render = function() {
+  disposeProfile?.();disposeProfile=undefined;
+  if(['#profile','#history'].includes(location.hash) && currentAccount){
+    accountMenu.update({...currentAccount,photoURL:currentAccount.profile?.photoURL});
+    disposeProfile=mountProfilePage($('#main'),{account:currentAccount,enrollments:Object.entries(state.enrollments).map(([id,e])=>({...e,courseTitle:courses.find(c=>c.id===id)?.title||'Course'})),initialTab:location.hash==='#history'?'history':'profile',certificates:false,onSave:async profile=>{
+      const stored=JSON.parse(localStorage.getItem(ACCOUNT_KEY)||'[]');
+      const next={...currentAccount,name:`${profile.firstName} ${profile.lastName}`,profile};
+      if(next.role==='admin')localStorage.setItem('enzoAcademy-admin-profile',JSON.stringify(profile));
+      else localStorage.setItem(ACCOUNT_KEY,JSON.stringify(stored.map(a=>a.id===next.id?next:a)));
+      currentAccount=next;accounts=stored.map(a=>a.id===next.id?next:a);state.name=next.name;save();
+      accountMenu.update({...next,photoURL:profile.photoURL});return next;
+    }});return;
+  }
   if (currentAccount?.role === 'admin') {
     renderAdmin();
+    accountMenu.update(currentAccount ? {...currentAccount,photoURL:currentAccount.profile?.photoURL} : null);
     return;
   }
   renderLearningPlatform();
@@ -152,6 +173,7 @@ render = function() {
   profile.classList.toggle('signed-out', !currentAccount);
   profile.textContent = currentAccount ? state.name.split(/\s+/).map(x => x[0]).join('').slice(0,2).toUpperCase() : 'Log in';
   profile.setAttribute('aria-label', currentAccount ? 'Open your account' : 'Log in');
+  accountMenu.update(currentAccount ? {...currentAccount,photoURL:currentAccount.profile?.photoURL} : null);
   if (!currentAccount && location.hash === '#learning') {
     $('#main').innerHTML = '<div class="empty"><span class="eyebrow">YOUR LEARNING SPACE</span><h1>Welcome to your next chapter.</h1><p class="muted">Log in to enroll in courses and keep track of your progress.</p><button class="btn" id="learning-login">Log in or create an account</button></div>';
     $('#learning-login').onclick = () => openAuth();
@@ -195,7 +217,8 @@ function openAuth(register = false) {
         accounts.push(account);
       } else {
         if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
-          account = {id:'enzoAcademy-admin', name:'Admin', email:ADMIN_EMAIL, role:'admin'};
+          const profile=JSON.parse(localStorage.getItem('enzoAcademy-admin-profile')||'null');
+          account = {id:'enzoAcademy-admin', name:profile?`${profile.firstName} ${profile.lastName}`:'Admin', email:ADMIN_EMAIL, role:'admin',profile};
         } else {
           account = accounts.find(a => a.email === email);
           if (!account || await passwordHash(password,account.salt) !== account.hash) throw new Error('Incorrect email or password.');
@@ -207,11 +230,18 @@ function openAuth(register = false) {
       loadLearner();
       $('#dialog').close();
       render();
-      if (pendingEnrollment) {
+      if (pendingEnrollment && account.role !== 'admin') {
         const pending = pendingEnrollment;
         pendingEnrollment = null;
-        detail(courses.find(c => c.id === pending.id));
-        notify('You’re signed in. Confirm your course enrollment.');
+        const course=courses.find(c=>c.id===pending.id);
+        if(!course){notify('This course is no longer available.');return;}
+        if(!state.enrollments[course.id]){
+          if(enrollmentClosed(course)){detail(course);notify('This course is no longer open for enrollment.');return;}
+          state.enrollments[course.id]=normalizeEnrollment(course,{enrolledAt:new Date().toISOString(),done:[],notes:{}});
+          if(!save()){delete state.enrollments[course.id];detail(course);return;}
+        }
+        location.hash='learning';render();learn(course);
+        notify('You are enrolled! Your course is ready.');
       } else { location.hash = account.role === 'admin' ? 'admin' : 'learning'; render(); }
     } catch (err) {
       error.textContent = err instanceof DOMException ? 'Browser storage is unavailable. Enable it and try again.' : err.message;
@@ -228,11 +258,16 @@ function logout() {
   render();
   notify('You have been logged out.');
 }
+const accountMenu = createAccountMenu($('#profile'), {
+  onLogout: logout,
+  certificates: false,
+  onProfile: () => { if(location.hash==='#profile')render();else location.hash='profile'; },
+});
 $('#profile').onclick = () => {
   if (!currentAccount) return openAuth();
-  show(`<span class="eyebrow">YOUR ACCOUNT</span><h2>${esc(currentAccount.name)}</h2><p>${esc(currentAccount.email)}</p><p>${currentAccount.role === 'admin' ? 'You have administrator access to enzoAcademy.' : 'Your course progress is saved to this account on this browser.'}</p><button id="logout" class="btn wide">Log out</button>`);
-  $('#logout').onclick = logout;
+  accountMenu.open();
 };
+
 document.addEventListener('click', event => {
   const button = event.target.closest('button');
   if (!currentAccount && (button?.dataset.enroll || button?.dataset.learn)) {

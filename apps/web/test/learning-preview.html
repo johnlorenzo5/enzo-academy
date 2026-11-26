@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Learning workspace — isolated UI fixture</title><link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet"></head>
+<body><header><a class="brand" href="#"><b>E↗</b><span>enzoAcademy<small>THE SCHOOL OF WHAT’S NEXT</small></span></a><nav><a href="#">Explore courses</a><a href="#" class="active">My learning</a></nav><span>JL</span></header><main id="main" class="learning-page"></main><footer><small>Isolated UI test fixture. No account or live database is used.</small><button id="author-preview" class="btn secondary">Preview course builder</button></footer><dialog id="studio"><button id="close-studio">Close</button><div id="builder"></div></dialog>
+<script type="module">
+import '../src/style.css';
+import '../src/learning.css';
+import { mountLearningWorkspace } from '../src/learning-workspace.js';
+import { mountCourseBuilder } from '../src/course-builder.js';
+const activity=(id,type,title,extra={})=>({id,type,title,content:'Build a foundation for your next chapter. In this lesson, we explore how computers turn instructions into useful work, and how to apply these ideas in practice.',exercise:'',questions:[],passPercent:80,estimatedMinutes:3,transcript:'Welcome to your learning journey.\n\nTake your time with each concept. Use the Notes panel to capture questions, and revisit completed lessons whenever you need a refresher.',resources:[{title:'YouTube player documentation',url:'https://developers.google.com/youtube/iframe_api_reference'}],...extra});
+let e={courseId:'preview',courseTitle:'Tools of the trade: Linux and SQL',status:'Active',done:[],notes:{},quizAttempts:{},activityProgress:{welcome:{completedAt:'2026-10-15'},video:{position:0,percent:0}},curriculum:[
+{id:'m1',title:'Introduction to operating systems',activities:[activity('welcome','reading','Welcome to your course'),activity('video','video','Inside the operating system',{videoId:'M7lc1UVf-VE'}),activity('compare','reading','Compare operating systems',{locked:true}),activity('practice','practice','Put your knowledge into practice',{locked:true})]},
+{id:'m2',title:'The Linux operating system',activities:[activity('linux','reading','Meet the Linux environment',{locked:true})]},
+{id:'m3',title:'Linux commands in the Bash shell',activities:[activity('bash','reading','Your first command',{locked:true})]},
+{id:'m4',title:'Databases and SQL',activities:[activity('sql','reading','Working with structured data',{locked:true})]},
+]};
+let dispose;
+async function api(path,{body}){
+  const id=path.split('/').at(-2);
+  if(path.endsWith('/video-session'))return {token:'fixture-session',position:e.activityProgress[id]?.position??0};
+  if(path.endsWith('/note'))(e.activityProgress[id]??={}).note=body.note;
+  if(path.endsWith('/submit')){(e.activityProgress[id]??={}).completedAt=new Date().toISOString();let found=false;for(const m of e.curriculum)for(const a of m.activities){if(found){a.locked=false;found=false;}if(a.id===id)found=true;}}
+  // This fixture only demonstrates saved positions. Server tests cover video completion and validation.
+  if(path.endsWith('/video-progress'))(e.activityProgress[id]??={}).position=body.position;
+  return {enrollment:structuredClone(e)};
+}
+function paint(id='video'){dispose?.();dispose=mountLearningWorkspace(document.querySelector('#main'),{enrollment:e,activityId:id,api,onUpdate:next=>e=next,onNavigate:next=>paint(next??'welcome')});}
+paint();
+document.querySelector('#author-preview').onclick=()=>{const dialog=document.querySelector('#studio');dialog.classList.add('studio-dialog');mountCourseBuilder(document.querySelector('#builder'),{title:e.courseTitle,modules:e.curriculum},{onSave:()=>dialog.close(),onCancel:()=>dialog.close()});dialog.showModal();};
+document.querySelector('#close-studio').onclick=()=>document.querySelector('#studio').close();
+</script></body></html>

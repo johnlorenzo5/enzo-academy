@@ -8,15 +8,20 @@
     "build": "tsc -p tsconfig.json",
     "start": "node dist/server.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "tsx --test test/*.test.ts"
+    "test": "tsx --test test/*.test.ts",
+    "migrate:certificates": "tsx src/migrate-certificates.ts"
   },
   "dependencies": {
     "@enzo/catalog": "*",
     "@enzo/domain": "*",
+    "@pdf-lib/fontkit": "^1.1.1",
     "fastify": "^5.6.0",
-    "firebase-admin": "^14.5.0"
+    "firebase-admin": "^14.5.0",
+    "pdf-lib": "^1.17.1",
+    "qrcode": "^1.5.4"
   },
   "devDependencies": {
+    "@types/qrcode": "^1.5.6",
     "tsx": "^4.20.0"
   }
 }

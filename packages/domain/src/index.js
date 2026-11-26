@@ -1,5 +1,6 @@
 import { moduleCount } from './curriculum.js';
 export { moduleCount, validateModules, gradeModule } from './curriculum.js';
+export { activitiesFor, curriculumItems, activityComplete, youtubeId, resourceUrl } from './activities.js';
 ﻿// Shared date rules. Timestamps are stored as ISO instants; admin inputs use local time.
 function durationOf(c) {
   return Number.isInteger(c.durationValue) && c.durationValue > 0 && ['days','weeks','months'].includes(c.durationUnit)

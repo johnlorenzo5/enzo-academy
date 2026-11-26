@@ -1,3 +1,5 @@
+import {mountProfilePage} from '../src/profile-page.js';
+import {createAccountMenu} from '../src/account-menu.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
@@ -15,7 +17,7 @@ async function boot(storage = {}, session) {
   Object.entries(storage).forEach(([key,value])=>window.localStorage.setItem(key,JSON.stringify(value)));
   if(session)window.sessionStorage.setItem('enzoAcademy-session-v1',session);
   const source=(await readFile(new URL('../src/main.js',import.meta.url),'utf8')).replace(/^import .*;\r?$/gm,'');
-  window.__dependencies={...domain,seedCourses,seedLessons,modulesFor,mountCourseBuilder,lessonMarkup,readQuiz,structuredClone};
+  window.__dependencies={mountProfilePage,changeAccountEmail:async()=>{},createAccountMenu,...domain,seedCourses,seedLessons,modulesFor,mountCourseBuilder,lessonMarkup,readQuiz,structuredClone};
   window.eval(`const {${Object.keys(window.__dependencies).join(',')}}=window.__dependencies;\n${source}`);
   return window;
 }
